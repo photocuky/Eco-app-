@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>EkoRutinas — Ecokhemia</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #F0F4F8;
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(160deg, #0D3C60 0%, #1B6CA8 100%);
+      border-radius: 0 0 24px 24px;
+      padding: 0 0 20px;
+    }
+    .header-top { padding: 28px 20px 8px; display: flex; align-items: center; gap: 12px; }
+    .header-logo-icon { font-size: 30px; }
+    .header-title { color: white; font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+    .header-subtitle { color: rgba(255,255,255,0.7); font-size: 13px; }
+    .header-desc { padding: 6px 20px 0; color: rgba(255,255,255,0.75); font-size: 13px; }
+
+    /* ── Pantalla ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .content { padding: 20px 16px; }
+
+    /* ── Tarjetas de perfil ── */
+    .perfil-card {
+      background: white;
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 2px solid transparent;
+      transition: border 0.15s;
+      cursor: pointer;
+    }
+    .perfil-card:hover { border-color: var(--color); }
+    .perfil-avatar {
+      width: 50px; height: 50px; border-radius: 25px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; flex-shrink: 0;
+    }
+    .perfil-info { flex: 1; min-width: 0; }
+    .perfil-nombre { font-weight: 700; font-size: 17px; color: #222; }
+    .perfil-tipo { font-size: 12px; color: #888; margin-top: 2px; }
+    .btn-eliminar {
+      background: #FDE8E8; border: none; color: #C00;
+      border-radius: 8px; padding: 7px 11px; cursor: pointer;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .perfil-arrow { color: #CCC; font-size: 22px; flex-shrink: 0; }
+
+    /* ── Botones ── */
+    .btn-primary {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #1B6CA8, #1E8449);
+      color: white; border: none; border-radius: 16px;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 4px; box-shadow: 0 4px 16px rgba(27,108,168,0.3);
+    }
+    .btn-secondary {
+      flex: 1; padding: 14px; border-radius: 12px;
+      border: 2px solid #1B6CA8; background: white;
+      color: #1B6CA8; font-weight: 700; font-size: 15px; cursor: pointer;
+    }
+    .btn-blue {
+      flex: 1; padding: 14px; border-radius: 12px;
+      border: none; background: #1B6CA8;
+      color: white; font-weight: 700; font-size: 15px; cursor: pointer;
+    }
+    .btn-green {
+      flex: 1; padding: 14px; border-radius: 12px;
+      border: none; background: #1E8449;
+      color: white; font-weight: 700; font-size: 15px; cursor: pointer;
+    }
+    .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+
+    /* ── Asistente ── */
+    .wizard-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .wizard-label { font-size: 15px; color: #555; margin-bottom: 16px; }
+    .wizard-input {
+      width: 100%; padding: 14px 16px; border-radius: 12px;
+      border: 2px solid #1B6CA8; font-size: 16px; outline: none;
+    }
+    .emoji-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; }
+    .emoji-btn {
+      font-size: 26px; padding: 10px; border-radius: 12px;
+      border: 3px solid #E0E0E0; background: white; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .emoji-btn.selected { border-color: #1B6CA8; background: #EBF3FA; }
+    .color-grid { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+    .color-btn {
+      width: 52px; height: 52px; border-radius: 26px;
+      border: 4px solid transparent; cursor: pointer; transition: border 0.15s;
+    }
+    .color-btn.selected { border-color: #222; }
+    .tipo-card {
+      padding: 14px 16px; border-radius: 12px;
+      border: 2px solid #E0E0E0; margin-bottom: 10px;
+      cursor: pointer; display: flex; align-items: center; gap: 12px;
+      transition: all 0.15s;
+    }
+    .tipo-card.selected { border-color: #1B6CA8; background: #EBF3FA; }
+    .tipo-emoji { font-size: 24px; }
+    .tipo-label { font-weight: 700; color: #222; font-size: 15px; }
+    .tipo-desc { font-size: 12px; color: #888; }
+    .progress-bar-wrap { margin-top: 10px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; }
+    .progress-bar-fill { height: 100%; background: white; border-radius: 3px; transition: width 0.3s; }
+
+    /* ── Vista del día ── */
+    .dia-header-inner { padding: 20px 16px 0; }
+    .dia-nav-top { display: flex; justify-content: space-between; margin-bottom: 14px; }
+    .btn-nav {
+      background: rgba(255,255,255,0.18); border: none; color: white;
+      border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: 13px;
+    }
+    .dia-perfil { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .dia-perfil-avatar { width: 46px; height: 46px; border-radius: 23px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .dia-perfil-nombre { color: white; font-weight: 700; font-size: 18px; }
+    .dia-perfil-empresa { color: rgba(255,255,255,0.7); font-size: 13px; }
+    .fecha-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.15); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;
+    }
+    .btn-fecha { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0 4px; }
+    .fecha-texto { text-align: center; }
+    .fecha-dia { color: white; font-weight: 700; font-size: 16px; }
+    .fecha-hoy { color: rgba(255,255,255,0.75); font-size: 12px; }
+    .progreso-wrap { margin-bottom: 4px; }
+    .progreso-top { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .progreso-label { color: rgba(255,255,255,0.75); font-size: 12px; }
+    .progreso-pct { color: white; font-weight: 700; font-size: 13px; }
+    .progreso-bar { height: 6px; background: rgba(255,255,255,0.25); border-radius: 3px; }
+    .progreso-fill { height: 100%; background: white; border-radius: 3px; transition: width 0.4s; }
+
+    /* ── Bloques de actividad ── */
+    .bloque {
+      background: white; border-radius: 14px; padding: 14px 16px;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 12px;
+      cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      transition: opacity 0.2s; border-left: 4px solid var(--cat-color);
+    }
+    .bloque.hecho { opacity: 0.6; }
+    .bloque-check {
+      width: 28px; height: 28px; border-radius: 14px;
+      border: 2px solid var(--cat-color); display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+      transition: background 0.2s; font-size: 14px; color: white; font-weight: 700;
+    }
+    .bloque-check.marcado { background: var(--cat-color); }
+    .bloque-info { flex: 1; min-width: 0; }
+    .bloque-titulo {
+      font-weight: 600; font-size: 15px; color: #222;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .bloque.hecho .bloque-titulo { color: #AAA; text-decoration: line-through; }
+    .bloque-hora { font-size: 12px; color: #888; margin-top: 2px; }
+    .bloque-cat { font-weight: 600; }
+    .btn-agregar {
+      width: 100%; padding: 14px; background: #1B6CA8;
+      color: white; border: none; border-radius: 14px; font-size: 15px;
+      font-weight: 700; cursor: pointer; margin-top: 4px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 12px rgba(27,108,168,0.3);
+    }
+    .vacio { background: white; border-radius: 16px; padding: 32px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .vacio-icon { font-size: 48px; }
+    .vacio-text { color: #888; margin-top: 12px; font-size: 14px; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: none; align-items: flex-end; justify-content: center; z-index: 100;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: white; border-radius: 24px 24px 0 0;
+      padding: 24px 20px 32px; width: 100%; max-width: 480px;
+    }
+    .modal-title { font-weight: 700; font-size: 18px; color: #222; margin-bottom: 18px; }
+    .modal-label { font-size: 13px; color: #555; font-weight: 600; display: block; margin-bottom: 4px; }
+    .modal-input {
+      width: 100%; padding: 12px; border-radius: 10px;
+      border: 1.5px solid #ddd; font-size: 15px; outline: none; margin-bottom: 14px;
+    }
+    .modal-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .modal-time { width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid #ddd; font-size: 15px; }
+    .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; margin-bottom: 16px; }
+    .cat-btn {
+      padding: 8px 10px; border-radius: 8px; border: 2px solid #ddd;
+      background: white; font-weight: 600; font-size: 13px; cursor: pointer; text-align: left;
+      transition: all 0.15s;
+    }
+    .cat-btn.selected { border-color: var(--cat-color); background: var(--cat-bg); color: var(--cat-color); }
+    .modal-error { color: #C00; font-size: 13px; margin-bottom: 12px; padding: 8px 12px; background: #FDE8E8; border-radius: 8px; display: none; }
+    .modal-error.show { display: block; }
+    .modal-btn-row { display: flex; gap: 10px; }
+    .btn-cancel { flex: 1; padding: 13px; border-radius: 12px; border: 1.5px solid #ddd; background: white; font-weight: 600; cursor: pointer; font-size: 15px; }
+    .btn-confirm { flex: 1; padding: 13px; border-radius: 12px; border: none; background: #1B6CA8; color: white; font-weight: 700; cursor: pointer; font-size: 15px; }
+
+    /* ── Modal confirmar eliminar ── */
+    .modal-center-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px;
+    }
+    .modal-center-overlay.open { display: flex; }
+    .modal-center-box { background: white; border-radius: 20px; padding: 28px; max-width: 320px; width: 100%; text-align: center; }
+    .modal-confirm-icon { font-size: 44px; }
+    .modal-confirm-title { font-weight: 700; font-size: 17px; color: #222; margin: 12px 0 8px; }
+    .modal-confirm-desc { color: #666; font-size: 14px; margin-bottom: 24px; }
+    .btn-delete { flex: 1; padding: 12px; border-radius: 12px; border: none; background: #C00; color: white; font-weight: 700; cursor: pointer; font-size: 15px; }
+
+    /* ── Pantalla rutina ── */
+    .rutina-tabs { display: flex; gap: 8px; margin-top: 12px; }
+    .tab-btn {
+      flex: 1; padding: 8px; border-radius: 10px; border: none;
+      background: rgba(255,255,255,0.18); color: white; font-weight: 700; font-size: 14px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn.active { background: white; color: #1B6CA8; }
+    .rutina-bloque {
+      background: white; border-radius: 14px; padding: 14px 16px;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06); border-left: 4px solid var(--cat-color);
+    }
+    .rutina-bloque-info { flex: 1; }
+    .rutina-bloque-titulo { font-weight: 600; font-size: 15px; color: #222; }
+    .rutina-bloque-hora { font-size: 12px; color: #888; margin-top: 2px; }
+    .add-panel { background: #EBF3FA; border-radius: 14px; padding: 16px; margin-top: 8px; }
+    .add-panel-title { font-weight: 700; color: #1B6CA8; margin-bottom: 12px; font-size: 15px; }
+    .add-input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid #B0C8E0; font-size: 14px; margin-bottom: 10px; }
+    .add-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .add-time { padding: 10px; border-radius: 10px; border: 1.5px solid #B0C8E0; font-size: 14px; width: 100%; }
+    .add-select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid #B0C8E0; font-size: 14px; margin-bottom: 12px; background: white; }
+    .btn-add { width: 100%; padding: 12px; background: #1B6CA8; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; }
+    .info-box { background: #EBF3FA; border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; color: #1565A0; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     PANTALLA: PERFILES
+═══════════════════════════════════════ -->
+<div id="screen-perfiles" class="screen active">
+  <div class="header">
+    <div class="header-top">
+      <span class="header-logo-icon">🧹</span>
+      <div>
+        <div class="header-title">EkoRutinas</div>
+        <div class="header-subtitle">Ecokhemia Cleaning Science</div>
+      </div>
+    </div>
+    <div class="header-desc">Selecciona tu perfil para continuar</div>
+  </div>
+  <div class="content">
+    <div id="lista-perfiles"></div>
+    <button class="btn-primary" onclick="irAsistente()">
+      <span style="font-size:22px">+</span> Nuevo perfil
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PANTALLA: ASISTENTE
+═══════════════════════════════════════ -->
+<div id="screen-asistente" class="screen">
+  <div class="header">
+    <div style="padding:20px 20px 12px">
+      <button class="btn-nav" onclick="irPerfiles()" style="margin-bottom:14px">← Volver</button>
+      <div style="color:white;font-size:20px;font-weight:700">Crear nuevo perfil</div>
+      <div id="wizard-step-label" style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:2px">Paso 1 de 4</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="wizard-progress" style="width:25%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="wizard-card">
+      <!-- Paso 1: nombre -->
+      <div id="wizard-paso-0">
+        <p class="wizard-label">¿Cómo te llamas o cuál es tu nombre en la empresa?</p>
+        <input class="wizard-input" id="draft-nombre" placeholder="Ej: María, Operario 1, Turno A..." oninput="draftNombre=this.value"/>
+      </div>
+      <!-- Paso 2: emoji -->
+      <div id="wizard-paso-1" style="display:none">
+        <p class="wizard-label">Elige un avatar:</p>
+        <div class="emoji-grid" id="emoji-grid"></div>
+      </div>
+      <!-- Paso 3: color -->
+      <div id="wizard-paso-2" style="display:none">
+        <p class="wizard-label">Elige un color:</p>
+        <div class="color-grid" id="color-grid"></div>
+      </div>
+      <!-- Paso 4: tipo rutina -->
+      <div id="wizard-paso-3" style="display:none">
+        <p class="wizard-label">¿Qué tipo de rutina necesitas?</p>
+        <div class="tipo-card selected" id="tipo-eko" onclick="selTipo('eko_operativo')">
+          <span class="tipo-emoji">🧹</span>
+          <div><div class="tipo-label">Operativo Ecokhemia</div><div class="tipo-desc">Turnos de limpieza Ecokhemia</div></div>
+        </div>
+        <div class="tipo-card" id="tipo-personal" onclick="selTipo('personal')">
+          <span class="tipo-emoji">🏠</span>
+          <div><div class="tipo-label">Rutina personal</div><div class="tipo-desc">Rutina adaptable personal</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="btn-atras" onclick="wizardAtras()" style="display:none">Atrás</button>
+      <button class="btn-blue" id="btn-siguiente" onclick="wizardSiguiente()">Siguiente</button>
+      <button class="btn-green" id="btn-crear" onclick="crearPerfil()" style="display:none">✓ Crear perfil</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PANTALLA: DÍA
+═══════════════════════════════════════ -->
+<div id="screen-dia" class="screen">
+  <div class="header">
+    <div class="dia-header-inner">
+      <div class="dia-nav-top">
+        <button class="btn-nav" onclick="irPerfiles()">← Perfiles</button>
+        <button class="btn-nav" onclick="irRutina()">⚙ Mi rutina</button>
+      </div>
+      <div class="dia-perfil">
+        <div class="dia-perfil-avatar" id="dia-avatar"></div>
+        <div>
+          <div class="dia-perfil-nombre" id="dia-nombre"></div>
+          <div class="dia-perfil-empresa">Ecokhemia Cleaning Science</div>
+        </div>
+      </div>
+      <div class="fecha-nav">
+        <button class="btn-fecha" onclick="cambiarDia(-1)">‹</button>
+        <div class="fecha-texto">
+          <div class="fecha-dia" id="fecha-texto"></div>
+          <div class="fecha-hoy" id="fecha-hoy"></div>
+        </div>
+        <button class="btn-fecha" onclick="cambiarDia(1)">›</button>
+      </div>
+      <div class="progreso-wrap">
+        <div class="progreso-top">
+          <span class="progreso-label">Progreso del día</span>
+          <span class="progreso-pct" id="progreso-pct">0%</span>
+        </div>
+        <div class="progreso-bar"><div class="progreso-fill" id="progreso-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="content" id="lista-bloques"></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PANTALLA: RUTINA
+═══════════════════════════════════════ -->
+<div id="screen-rutina" class="screen">
+  <div class="header">
+    <div style="padding:20px 16px 12px">
+      <button class="btn-nav" onclick="irDia()" style="margin-bottom:12px">← Volver al día</button>
+      <div style="color:white;font-weight:700;font-size:19px">⚙ Rutina base</div>
+      <div style="color:rgba(255,255,255,0.7);font-size:13px" id="rutina-perfil-label"></div>
+      <div class="rutina-tabs">
+        <button class="tab-btn active" id="tab-semana" onclick="setTab('semana')">📅 Semana</button>
+        <button class="tab-btn" id="tab-finde" onclick="setTab('finde')">🏖 Fin de semana</button>
+      </div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="info-box">ℹ Esta es la plantilla base de tu rutina.</div>
+    <div id="lista-rutina"></div>
+    <div class="add-panel">
+      <div class="add-panel-title">+ Agregar bloque</div>
+      <input class="add-input" id="add-titulo" placeholder="Nombre de la actividad"/>
+      <div class="add-grid2">
+        <input type="time" class="add-time" id="add-inicio" value="08:00"/>
+        <input type="time" class="add-time" id="add-fin" value="09:00"/>
+      </div>
+      <select class="add-select" id="add-cat"></select>
+      <button class="btn-add" onclick="agregarAPlantilla()">Agregar a la plantilla</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: AGREGAR ACTIVIDAD AL DÍA
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-agregar">
+  <div class="modal-box">
+    <div class="modal-title">Nueva actividad</div>
+    <label class="modal-label">Nombre</label>
+    <input class="modal-input" id="m-titulo" placeholder="Ej: Reunión con cliente, Ir al médico..."/>
+    <div class="modal-grid2">
+      <div><label class="modal-label">Inicio</label><input type="time" class="modal-time" id="m-inicio" value="08:00"/></div>
+      <div><label class="modal-label">Fin</label><input type="time" class="modal-time" id="m-fin" value="09:00"/></div>
+    </div>
+    <label class="modal-label">Categoría</label>
+    <div class="cat-grid" id="cat-grid-modal"></div>
+    <div class="modal-error" id="modal-error"></div>
+    <div class="modal-btn-row">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-confirm" onclick="agregarBloque()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: CONFIRMAR ELIMINAR
+═══════════════════════════════════════ -->
+<div class="modal-center-overlay" id="modal-eliminar">
+  <div class="modal-center-box">
+    <div class="modal-confirm-icon">🗑</div>
+    <div class="modal-confirm-title">¿Eliminar perfil?</div>
+    <div class="modal-confirm-desc">Esta acción no se puede deshacer.</div>
+    <div class="modal-btn-row">
+      <button class="btn-cancel" onclick="cerrarEliminar()">Cancelar</button>
+      <button class="btn-delete" onclick="confirmarEliminar()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// DATOS
+// ══════════════════════════════════════════════════════
+const CATS = {
+  trabajo:      { nombre:"Trabajo",       color:"#1B6CA8", bg:"#EBF3FA" },
+  reunion:      { nombre:"Reunión",       color:"#C0392B", bg:"#FDECEA" },
+  comida:       { nombre:"Comida",        color:"#D68910", bg:"#FEF9E7" },
+  ejercicio:    { nombre:"Ejercicio",     color:"#1E8449", bg:"#EAFAF1" },
+  personal:     { nombre:"Personal",      color:"#717D7E", bg:"#F2F3F4" },
+  casa:         { nombre:"Casa",          color:"#117A65", bg:"#E8F8F5" },
+  personalizado:{ nombre:"Personalizado", color:"#7D3C98", bg:"#F5EEF8" },
+};
+const COLORES = ["#1B6CA8","#1E8449","#C0392B","#7D3C98","#D68910","#117A65"];
+const EMOJIS  = ["🙂","🚀","🌟","💪","🦊","🌿","⚡","🎯","👷","🔧"];
+const DIAS    = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const MESES   = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+const RUTINAS = {
+  eko_operativo: {
+    label: "Operativo Ecokhemia",
+    semana: [
+      { inicio:"06:30", fin:"07:00", titulo:"Preparación y traslado",       cat:"personal" },
+      { inicio:"07:00", fin:"09:00", titulo:"Limpieza matutina · Bloque 1", cat:"trabajo"  },
+      { inicio:"09:00", fin:"09:15", titulo:"Descanso",                     cat:"personal" },
+      { inicio:"09:15", fin:"12:00", titulo:"Limpieza matutina · Bloque 2", cat:"trabajo"  },
+      { inicio:"12:00", fin:"13:00", titulo:"Almuerzo",                     cat:"comida"   },
+      { inicio:"13:00", fin:"16:00", titulo:"Limpieza vespertina",          cat:"trabajo"  },
+      { inicio:"16:00", fin:"16:15", titulo:"Cierre y entrega de turno",    cat:"reunion"  },
+    ],
+    finde: [
+      { inicio:"07:00", fin:"07:15", titulo:"Preparación y traslado",       cat:"personal" },
+      { inicio:"07:15", fin:"11:00", titulo:"Limpieza especial · Bloque 1", cat:"trabajo"  },
+      { inicio:"11:00", fin:"12:00", titulo:"Almuerzo",                     cat:"comida"   },
+      { inicio:"12:00", fin:"15:00", titulo:"Limpieza especial · Bloque 2", cat:"trabajo"  },
+      { inicio:"15:00", fin:"15:15", titulo:"Cierre y entrega de turno",    cat:"reunion"  },
+    ]
+  },
+  personal: {
+    label: "Rutina personal",
+    semana: [
+      { inicio:"07:00", fin:"07:30", titulo:"Rutina matutina personal", cat:"personal"  },
+      { inicio:"07:30", fin:"08:15", titulo:"Ejercicio",                cat:"ejercicio" },
+      { inicio:"08:15", fin:"09:15", titulo:"Desayuno",                 cat:"comida"    },
+      { inicio:"09:15", fin:"12:00", titulo:"Trabajo · Bloque 1",       cat:"trabajo"   },
+      { inicio:"12:00", fin:"13:30", titulo:"Almuerzo",                 cat:"comida"    },
+      { inicio:"13:30", fin:"17:00", titulo:"Trabajo · Bloque 2",       cat:"trabajo"   },
+      { inicio:"17:00", fin:"17:45", titulo:"Ejercicio / Deporte",      cat:"ejercicio" },
+      { inicio:"19:00", fin:"20:00", titulo:"Cena",                     cat:"comida"    },
+    ],
+    finde: [
+      { inicio:"08:00", fin:"09:00", titulo:"Rutina matutina",  cat:"personal"  },
+      { inicio:"09:00", fin:"10:00", titulo:"Ejercicio",        cat:"ejercicio" },
+      { inicio:"10:00", fin:"11:00", titulo:"Desayuno",         cat:"comida"    },
+      { inicio:"13:00", fin:"14:30", titulo:"Almuerzo",         cat:"comida"    },
+      { inicio:"19:00", fin:"20:00", titulo:"Cena",             cat:"comida"    },
+    ]
+  }
+};
+
+// Estado global
+let perfiles = [
+  { id:"eko1",  nombre:"Ecokhemia", emoji:"🧹", color:"#1B6CA8", tipoRutina:"eko_operativo" },
+  { id:"andy1", nombre:"Andy",      emoji:"🙂", color:"#1E8449", tipoRutina:"personal"      },
+];
+let perfilActivo = null;
+let diaData = [];
+let fecha = new Date();
+let tabActual = "semana";
+let catSelModal = "trabajo";
+let perfilAEliminar = null;
+
+// Draft asistente
+let draftNombre = "";
+let draftEmoji  = "🙂";
+let draftColor  = "#1B6CA8";
+let draftTipo   = "eko_operativo";
+let wizardPaso  = 0;
+
+// ── Utilidades ──────────────────────────────────────
+const pad  = n => String(n).padStart(2,"0");
+const toKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const mins  = hhmm => { const [h,m]=(hhmm||"00:00").split(":").map(Number); return h*60+m; };
+const cruzan = (a1,a2,b1,b2) => mins(a1)<mins(b2)&&mins(b1)<mins(a2);
+
+function genDia(f, tipo) {
+  const dow = f.getDay();
+  const base = (dow===0||dow===6) ? RUTINAS[tipo].finde : RUTINAS[tipo].semana;
+  return base.map((b,i) => ({...b, id:`${toKey(f)}-${i}`, hecho:false}));
+}
+
+// ── Navegación ────────────────────────────────────────
+function mostrar(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function irPerfiles()  { mostrar('perfiles'); renderPerfiles(); }
+function irDia()       { mostrar('dia'); renderDia(); }
+function irRutina()    { mostrar('rutina'); renderRutina(); }
+function irAsistente() { wizardPaso=0; draftNombre=""; draftEmoji="🙂"; draftColor=COLORES[0]; draftTipo="eko_operativo"; mostrar('asistente'); renderWizard(); }
+
+// ══════════════════════════════════════════════════════
+// PANTALLA PERFILES
+// ══════════════════════════════════════════════════════
+function renderPerfiles() {
+  const lista = document.getElementById('lista-perfiles');
+  if (perfiles.length === 0) {
+    lista.innerHTML = `<div class="vacio"><span class="vacio-icon">👷</span><p class="vacio-text">No hay perfiles todavía.<br>Crea el primero aquí abajo.</p></div>`;
+    return;
+  }
+  lista.innerHTML = perfiles.map(p => `
+    <div class="perfil-card" style="--color:${p.color}" onclick="abrirPerfil('${p.id}')">
+      <div class="perfil-avatar" style="background:${p.color}">${p.emoji}</div>
+      <div class="perfil-info">
+        <div class="perfil-nombre">${p.nombre}</div>
+        <div class="perfil-tipo">${RUTINAS[p.tipoRutina]?.label || "Rutina personalizada"}</div>
+      </div>
+      <button class="btn-eliminar" onclick="pedirEliminar(event,'${p.id}')">🗑</button>
+      <span class="perfil-arrow">›</span>
+    </div>
+  `).join('');
+}
+
+function abrirPerfil(id) {
+  perfilActivo = perfiles.find(p => p.id === id);
+  diaData = genDia(fecha, perfilActivo.tipoRutina);
+  irDia();
+}
+
+function pedirEliminar(e, id) {
+  e.stopPropagation();
+  perfilAEliminar = id;
+  document.getElementById('modal-eliminar').classList.add('open');
+}
+function cerrarEliminar() {
+  perfilAEliminar = null;
+  document.getElementById('modal-eliminar').classList.remove('open');
+}
+function confirmarEliminar() {
+  perfiles = perfiles.filter(p => p.id !== perfilAEliminar);
+  cerrarEliminar();
+  renderPerfiles();
+}
+
+// ══════════════════════════════════════════════════════
+// PANTALLA DÍA
+// ══════════════════════════════════════════════════════
+function renderDia() {
+  if (!perfilActivo) return;
+
+  // Avatar y nombre
+  const av = document.getElementById('dia-avatar');
+  av.textContent = perfilActivo.emoji;
+  av.style.background = perfilActivo.color;
+  document.getElementById('dia-nombre').textContent = perfilActivo.nombre;
+
+  // Fecha
+  const hoy = new Date();
+  const esHoy = toKey(fecha) === toKey(hoy);
+  document.getElementById('fecha-texto').textContent = `${DIAS[fecha.getDay()]} ${fecha.getDate()} de ${MESES[fecha.getMonth()]}`;
+  document.getElementById('fecha-hoy').textContent = esHoy ? "Hoy" : "";
+
+  // Progreso
+  const total = diaData.length;
+  const hechos = diaData.filter(b=>b.hecho).length;
+  const pct = total ? Math.round(hechos/total*100) : 0;
+  document.getElementById('progreso-pct').textContent = pct + "%";
+  const fill = document.getElementById('progreso-fill');
+  fill.style.width = pct + "%";
+  fill.style.background = pct===100 ? "#2ECC71" : "white";
+
+  // Bloques
+  const lista = document.getElementById('lista-bloques');
+  let html = '';
+  if (diaData.length === 0) {
+    html = `<div class="vacio"><span class="vacio-icon">📋</span><p class="vacio-text">Sin actividades este día.<br>Agrega una con el botón +.</p></div>`;
+  } else {
+    diaData.forEach(b => {
+      const cat = CATS[b.cat] || CATS.personalizado;
+      html += `
+        <div class="bloque ${b.hecho?'hecho':''}" style="--cat-color:${cat.color}" onclick="toggleHecho('${b.id}')">
+          <div class="bloque-check ${b.hecho?'marcado':''}" style="--cat-color:${cat.color}">${b.hecho?'✓':''}</div>
+          <div class="bloque-info">
+            <div class="bloque-titulo">${b.titulo}</div>
+            <div class="bloque-hora">${b.inicio} – ${b.fin} · <span class="bloque-cat" style="color:${cat.color}">${cat.nombre}</span></div>
+          </div>
+        </div>`;
+    });
+  }
+  html += `<button class="btn-agregar" onclick="abrirModal()"><span style="font-size:20px">+</span> Agregar actividad</button>`;
+  lista.innerHTML = html;
+}
+
+function toggleHecho(id) {
+  const b = diaData.find(b=>b.id===id);
+  if (b) b.hecho = !b.hecho;
+  renderDia();
+}
+
+function cambiarDia(delta) {
+  fecha.setDate(fecha.getDate() + delta);
+  diaData = genDia(fecha, perfilActivo.tipoRutina);
+  renderDia();
+}
+
+// ── Modal agregar bloque ────────────────────────────
+function abrirModal() {
+  catSelModal = "trabajo";
+  document.getElementById('m-titulo').value = "";
+  document.getElementById('m-inicio').value = "08:00";
+  document.getElementById('m-fin').value = "09:00";
+  document.getElementById('modal-error').classList.remove('show');
+  renderCatGrid();
+  document.getElementById('modal-agregar').classList.add('open');
+}
+function cerrarModal() { document.getElementById('modal-agregar').classList.remove('open'); }
+
+function renderCatGrid() {
+  document.getElementById('cat-grid-modal').innerHTML = Object.entries(CATS).map(([k,v]) => `
+    <button class="cat-btn ${catSelModal===k?'selected':''}"
+      style="--cat-color:${v.color};--cat-bg:${v.bg};color:${catSelModal===k?v.color:'#555'}"
+      onclick="selCat('${k}')">${v.nombre}</button>
+  `).join('');
+}
+function selCat(k) { catSelModal=k; renderCatGrid(); }
+
+function agregarBloque() {
+  const titulo = document.getElementById('m-titulo').value.trim();
+  const inicio = document.getElementById('m-inicio').value;
+  const fin    = document.getElementById('m-fin').value;
+  const err    = document.getElementById('modal-error');
+
+  if (!titulo)            { err.textContent="Escribe un nombre."; err.classList.add('show'); return; }
+  if (mins(inicio)>=mins(fin)) { err.textContent="La hora de inicio debe ser antes del fin."; err.classList.add('show'); return; }
+  const conf = diaData.find(b => cruzan(inicio,fin,b.inicio,b.fin));
+  if (conf) { err.textContent=`Conflicto con "${conf.titulo}" (${conf.inicio}–${conf.fin}).`; err.classList.add('show'); return; }
+
+  diaData.push({ id:`custom-${Date.now()}`, titulo, inicio, fin, cat:catSelModal, hecho:false });
+  diaData.sort((a,b)=>mins(a.inicio)-mins(b.inicio));
+  cerrarModal();
+  renderDia();
+}
+
+// ══════════════════════════════════════════════════════
+// PANTALLA RUTINA
+// ══════════════════════════════════════════════════════
+function renderRutina() {
+  if (!perfilActivo) return;
+  document.getElementById('rutina-perfil-label').textContent = "Perfil: " + perfilActivo.nombre;
+  document.getElementById('tab-semana').className = "tab-btn" + (tabActual==="semana"?" active":"");
+  document.getElementById('tab-finde').className  = "tab-btn" + (tabActual==="finde" ?" active":"");
+
+  const lista = RUTINAS[perfilActivo.tipoRutina][tabActual];
+  document.getElementById('lista-rutina').innerHTML = lista.map(b => {
+    const cat = CATS[b.cat] || CATS.personalizado;
+    return `
+      <div class="rutina-bloque" style="--cat-color:${cat.color}">
+        <div class="rutina-bloque-info">
+          <div class="rutina-bloque-titulo">${b.titulo}</div>
+          <div class="rutina-bloque-hora">${b.inicio} – ${b.fin} · <span style="color:${cat.color};font-weight:600">${cat.nombre}</span></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Select categorías
+  document.getElementById('add-cat').innerHTML = Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v.nombre}</option>`).join('');
+}
+
+function setTab(t) { tabActual=t; renderRutina(); }
+
+function agregarAPlantilla() {
+  const titulo = document.getElementById('add-titulo').value.trim();
+  const inicio = document.getElementById('add-inicio').value;
+  const fin    = document.getElementById('add-fin').value;
+  const cat    = document.getElementById('add-cat').value;
+  if (!titulo) { alert("Escribe un nombre para la actividad."); return; }
+  if (mins(inicio)>=mins(fin)) { alert("La hora de inicio debe ser antes del fin."); return; }
+  RUTINAS[perfilActivo.tipoRutina][tabActual].push({ inicio, fin, titulo, cat });
+  RUTINAS[perfilActivo.tipoRutina][tabActual].sort((a,b)=>mins(a.inicio)-mins(b.inicio));
+  document.getElementById('add-titulo').value = "";
+  renderRutina();
+}
+
+// ══════════════════════════════════════════════════════
+// ASISTENTE
+// ══════════════════════════════════════════════════════
+function renderWizard() {
+  // Mostrar paso correcto
+  for(let i=0;i<4;i++) document.getElementById(`wizard-paso-${i}`).style.display = i===wizardPaso?'block':'none';
+
+  // Progreso
+  document.getElementById('wizard-step-label').textContent = `Paso ${wizardPaso+1} de 4`;
+  document.getElementById('wizard-progress').style.width = ((wizardPaso+1)/4*100)+"%";
+
+  // Botones
+  document.getElementById('btn-atras').style.display    = wizardPaso>0 ? 'flex':'none';
+  document.getElementById('btn-siguiente').style.display = wizardPaso<3 ? 'flex':'none';
+  document.getElementById('btn-crear').style.display     = wizardPaso===3? 'flex':'none';
+
+  // Emoji grid
+  if (wizardPaso===1) {
+    document.getElementById('emoji-grid').innerHTML = EMOJIS.map(e =>
+      `<button class="emoji-btn ${draftEmoji===e?'selected':''}" onclick="selEmoji('${e}')">${e}</button>`
+    ).join('');
+  }
+  // Color grid
+  if (wizardPaso===2) {
+    document.getElementById('color-grid').innerHTML = COLORES.map(c =>
+      `<button class="color-btn ${draftColor===c?'selected':''}" style="background:${c}" onclick="selColor('${c}')"></button>`
+    ).join('');
+  }
+  // Tipo
+  if (wizardPaso===3) {
+    document.getElementById('tipo-eko').className     = "tipo-card" + (draftTipo==="eko_operativo"?" selected":"");
+    document.getElementById('tipo-personal').className= "tipo-card" + (draftTipo==="personal"     ?" selected":"");
+  }
+}
+
+function wizardSiguiente() {
+  if (wizardPaso===0 && !document.getElementById('draft-nombre').value.trim()) return;
+  if (wizardPaso===0) draftNombre = document.getElementById('draft-nombre').value.trim();
+  wizardPaso++;
+  renderWizard();
+}
+function wizardAtras() { wizardPaso--; renderWizard(); }
+function selEmoji(e)   { draftEmoji=e; renderWizard(); }
+function selColor(c)   { draftColor=c; renderWizard(); }
+function selTipo(t)    { draftTipo=t;  renderWizard(); }
+
+function crearPerfil() {
+  if (!draftNombre) return;
+  const nuevo = { id:"p"+Date.now(), nombre:draftNombre, emoji:draftEmoji, color:draftColor, tipoRutina:draftTipo };
+  perfiles.push(nuevo);
+  perfilActivo = nuevo;
+  diaData = genDia(fecha, nuevo.tipoRutina);
+  irDia();
+}
+
+// ══════════════════════════════════════════════════════
+// INICIO
+// ══════════════════════════════════════════════════════
+renderPerfiles();
+</script>
+</body>
+</html>
